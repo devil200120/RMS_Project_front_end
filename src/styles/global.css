@@ -1,0 +1,188 @@
+/* Reset and base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: #e0e0e0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2rem;
+  overflow-x: hidden;
+}
+
+/* Neumorphic container */
+.container {
+  background: #1c2a47;
+  border-radius: 20px;
+  box-shadow:
+    8px 8px 15px #16213e,
+    -8px -8px 15px #243b6b;
+  padding: 2rem;
+  max-width: 900px;
+  width: 100%;
+  margin: 2rem auto;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glassmorphic card */
+.card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow:
+    0 16px 48px 0 rgba(31, 38, 135, 0.6);
+}
+
+/* Buttons */
+button {
+  background: #2a5298;
+  border: none;
+  border-radius: 50px;
+  color: #fff;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow:
+    4px 4px 8px #1a3a6e,
+    -4px -4px 8px #3b6acb;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+  background: #1a3a6e;
+  box-shadow:
+    6px 6px 12px #142a54,
+    -6px -6px 12px #4a7adf;
+}
+
+/* Inputs */
+input, select, textarea {
+  background: #1c2a47;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: #e0e0e0;
+  font-size: 1rem;
+  box-shadow:
+    inset 4px 4px 8px #16213e,
+    inset -4px -4px 8px #243b6b;
+  transition: box-shadow 0.3s ease;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow:
+    inset 6px 6px 12px #1a2a50,
+    inset -6px -6px 12px #2e4a8c;
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #f0f0f0;
+  margin-bottom: 1rem;
+}
+
+p {
+  font-weight: 400;
+  line-height: 1.6;
+  color: #cfd8dc;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+}
+
+th, td {
+  padding: 1rem 1.5rem;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: #e0e0e0;
+  box-shadow:
+    4px 4px 8px #16213e,
+    -4px -4px 8px #243b6b;
+}
+
+th {
+  background: transparent;
+  color: #90caf9;
+  font-weight: 600;
+}
+
+/* Scrollbar for tables */
+table::-webkit-scrollbar {
+  height: 8px;
+}
+table::-webkit-scrollbar-track {
+  background: #1c2a47;
+  border-radius: 10px;
+}
+table::-webkit-scrollbar-thumb {
+  background: #2a5298;
+  border-radius: 10px;
+}
+table::-webkit-scrollbar-thumb:hover {
+  background: #1a3a6e;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  table, th, td {
+    font-size: 0.9rem;
+  }
+  
+  button {
+    padding: 0.5rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
