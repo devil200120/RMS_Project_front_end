@@ -100,7 +100,7 @@ export default function ViewerPlayer() {
           <Box sx={{ position: 'relative', mb: 3, textAlign: 'center' }}>
             <video
               ref={videoRef}
-              src={`${MEDIA_URL}/${content.filePath}`}
+              src={`${MEDIA_URL}/uploads/${content.filePath}`}
               controls autoPlay loop muted
               style={{ width: '80%', maxWidth: 800, borderRadius: 8, outline: `2px solid ${theme.palette.divider}` }}
             />
@@ -118,7 +118,7 @@ export default function ViewerPlayer() {
         {content.type === 'image' && (
           <Box
             component="img"
-            src={`${MEDIA_URL}/${content.filePath}`}
+            src={`${MEDIA_URL}/uploads/${content.filePath}`}
             alt={content.title}
             sx={{ maxWidth: '80%', borderRadius: 2, mb: 3 }}
           />
