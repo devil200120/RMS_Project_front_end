@@ -2,11 +2,10 @@
 
 import axios from 'axios';
 
-// VITE_API_URL should point to your backend API (including “/api”)
-// e.g. VITE_API_URL=https://your-backend.com/api
+// Use Vite environment variable for API base URL
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Create an Axios instance for JSON API calls
+// Create axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -26,25 +25,17 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Optional: Global response error handler (e.g., logout on 401)
+// Optional: Global response error handler (shows error messages, handles 401, etc.)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Example: if server returns 401, clear token and redirect
-    // if (error.response?.status === 401) {
+    // You can add global error handling here, e.g., logout on 401
+    // if (error.response && error.response.status === 401) {
     //   localStorage.removeItem('token');
     //   window.location.href = '/login';
     // }
     return Promise.reject(error);
   }
 );
-
-// Export a separate constant for serving static media (uploads)
-export const MEDIA_URL = API_URL.replace(/\/api$/, '');
-
-// Usage:
-//   import api, { MEDIA_URL } from './services/api';
-//   api.get('/content')
-//   <video src={`${MEDIA_URL}/${filePath}`} />
 
 export default api;
