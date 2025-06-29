@@ -1,6 +1,6 @@
 // src/components/ViewerPlayer.jsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -9,18 +9,21 @@ import {
   Alert,
   CircularProgress,
   IconButton,
-  Button
+  Button,
+  useTheme
 } from '@mui/material';
-import { ArrowBack, Refresh } from '@mui/icons-material';
+import { ArrowBack, Refresh, Fullscreen } from '@mui/icons-material';
 import api from '../services/api';
 
 function ViewerPlayer() {
   const navigate = useNavigate();
+  const theme = useTheme();
   const { user } = useSelector(state => state.auth);
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastCheck, setLastCheck] = useState(null);
+  const videoRef = useRef(null);
 
   // Redirect non-viewers
   useEffect(() => {
@@ -30,7 +33,7 @@ function ViewerPlayer() {
   }, [user, navigate]);
 
   // Fetch current schedule
-  const fetchContent = async (showLoading = true) => {
+  const fetchContent = useCallback(async (showLoading = true) => {
     if (showLoading) setLoading(true);
     try {
       const res = await api.get('/schedules/current');
@@ -48,22 +51,36 @@ function ViewerPlayer() {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchContent();
     const interval = setInterval(() => fetchContent(false), 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchContent]);
 
   const handleRefresh = () => fetchContent(true);
   const handleBack = () => navigate('/dashboard');
+
+  const enterFullScreen = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (el.requestFullscreen) {
+      el.requestFullscreen();
+    } else if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+    } else if (el.mozRequestFullScreen) {
+      el.mozRequestFullScreen();
+    } else if (el.msRequestFullscreen) {
+      el.msRequestFullscreen();
+    }
+  };
 
   if (loading) {
     return (
       <FullScreen>
         <GlassBox>
-          <CircularProgress size={60} color="inherit" />
+          <CircularProgress size={60} sx={{ color: 'common.white' }} />
           <Typography variant="h6" sx={{ mt: 2, color: 'common.white' }}>
             Loading schedule...
           </Typography>
@@ -109,7 +126,7 @@ function ViewerPlayer() {
           {content.title}
         </Typography>
 
-        {/* Display content based on type */}
+        {/* Image */}
         {content.type === 'image' && (
           <Box
             component="img"
@@ -118,16 +135,41 @@ function ViewerPlayer() {
             sx={{ maxWidth: '80%', borderRadius: 2, mb: 3 }}
           />
         )}
+
+        {/* Video with Fullscreen */}
         {content.type === 'video' && (
-          <Box
-            component="video"
-            src={`${api.defaults.baseURL}/${content.filePath}`}
-            controls
-            autoPlay
-            loop
-            sx={{ maxWidth: '80%', borderRadius: 2, mb: 3 }}
-          />
+          <Box sx={{ position: 'relative', mb: 3, width: '100%', textAlign: 'center' }}>
+            <Box
+              component="video"
+              ref={videoRef}
+              src={`${api.defaults.baseURL}/${content.filePath}`}
+              controls
+              autoPlay
+              loop
+              sx={{
+                width: '80%',
+                maxWidth: '800px',
+                borderRadius: 2,
+                outline: `2px solid ${theme.palette.divider}`
+              }}
+            />
+            <IconButton
+              onClick={enterFullScreen}
+              sx={{
+                position: 'absolute',
+                bottom: 16,
+                right: '10%',
+                bgcolor: 'rgba(0,0,0,0.5)',
+                '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' }
+              }}
+              aria-label="Enter full screen"
+            >
+              <Fullscreen sx={{ color: 'common.white' }} />
+            </IconButton>
+          </Box>
         )}
+
+        {/* URL */}
         {content.type === 'url' && (
           <Box
             component="iframe"
@@ -136,6 +178,8 @@ function ViewerPlayer() {
             sx={{ width: '80%', height: '60vh', border: 0, mb: 3 }}
           />
         )}
+
+        {/* HTML */}
         {content.type === 'html' && (
           <Box
             sx={{
@@ -151,6 +195,7 @@ function ViewerPlayer() {
           />
         )}
 
+        {/* Download */}
         {content.filePath && (
           <Button
             variant="contained"
@@ -163,6 +208,7 @@ function ViewerPlayer() {
           </Button>
         )}
 
+        {/* Last updated */}
         {lastCheck && (
           <Typography variant="caption" sx={{ color: 'common.white' }}>
             Last updated: {lastCheck.toLocaleTimeString()}
@@ -173,6 +219,7 @@ function ViewerPlayer() {
   );
 }
 
+// Styled wrappers
 const FullScreen = ({ children }) => (
   <Box
     sx={{
