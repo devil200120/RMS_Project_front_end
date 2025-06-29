@@ -1,5 +1,3 @@
-// src/components/Dashboard.jsx
-
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -34,6 +32,8 @@ import {
   Zoom,
   Backdrop,
   IconButton,
+  Breadcrumbs,
+  Link
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -50,13 +50,15 @@ import {
   Close,
   Brightness4,
   Brightness7,
+  Home,
+  NavigateNext
 } from '@mui/icons-material';
 
 import { logout } from '../Store/authSlice';
 import { fetchContent } from '../Store/contentSlice';
 import { generateLicense } from '../Store/licenseSlice';
 
-// Custom styled components with glassmorphism and animations
+// Custom styled components
 const GlassCard = motion(Card);
 const AnimatedPaper = motion(Paper);
 const FloatingButton = motion(Button);
@@ -127,7 +129,7 @@ const Dashboard = () => {
       color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
       description: 'Device Control'
     },
-    ...(user.role === 'ADMIN'
+    ...(user?.role === 'ADMIN'
       ? [{ 
           name: 'Licenses', 
           href: '/licenses', 
@@ -142,55 +144,6 @@ const Dashboard = () => {
     if (status === 'approved') return 'success';
     if (status === 'rejected') return 'error';
     return 'warning';
-  };
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        delayChildren: 0.1,
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 10
-      }
-    }
-  };
-
-  const cardHoverVariants = {
-    hover: {
-      scale: 1.05,
-      rotateY: 5,
-      rotateX: 5,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 20
-      }
-    }
-  };
-
-  const pulseVariants = {
-    pulse: {
-      scale: [1, 1.02, 1],
-      transition: {
-        duration: 2,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    }
   };
 
   const statsCards = [
@@ -219,124 +172,77 @@ const Dashboard = () => {
 
   return (
     <>
-      {/* Animated Background */}
-      <Box
+      {/* Enhanced AppBar with Breadcrumbs */}
+      <AppBar 
+        position="static" 
         sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: darkMode 
-            ? 'linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)'
-            : 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
-          zIndex: -2,
+          background: alpha('#ffffff', 0.1),
+          backdropFilter: 'blur(20px)',
+          borderBottom: `1px solid ${alpha('#ffffff', 0.2)}`,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
         }}
-      />
-      
-      {/* Floating particles background */}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: `radial-gradient(circle at 20% 80%, ${alpha('#667eea', 0.3)} 0%, transparent 50%),
-                      radial-gradient(circle at 80% 20%, ${alpha('#f093fb', 0.3)} 0%, transparent 50%),
-                      radial-gradient(circle at 40% 40%, ${alpha('#43e97b', 0.2)} 0%, transparent 50%)`,
-          zIndex: -1,
-        }}
-      />
-
-      {/* Glassmorphism AppBar */}
-      <motion.div
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 100, damping: 15 }}
       >
-        <AppBar 
-          position="static" 
-          sx={{
-            background: alpha('#ffffff', 0.1),
-            backdropFilter: 'blur(20px)',
-            borderBottom: `1px solid ${alpha('#ffffff', 0.2)}`,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-          }}
-        >
-          <Toolbar>
-            <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            >
-              <DashboardIcon sx={{ mr: 2, color: '#fff' }} />
-            </motion.div>
-            
-            <Typography variant="h6" sx={{ flexGrow: 1, color: '#fff', fontWeight: 600 }}>
+        <Toolbar>
+          <motion.div
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          >
+            <DashboardIcon sx={{ mr: 2, color: '#fff' }} />
+          </motion.div>
+          
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600, mb: 0.5 }}>
               Remote CMS Dashboard
             </Typography>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <Breadcrumbs 
+              separator={<NavigateNext fontSize="small" sx={{ color: alpha('#fff', 0.7) }} />}
+              sx={{ color: alpha('#fff', 0.8) }}
             >
-              <IconButton
-                color="inherit"
-                onClick={() => setDarkMode(!darkMode)}
-                sx={{ mr: 1 }}
+              <Link 
+                underline="hover" 
+                color="inherit" 
+                href="/dashboard"
+                sx={{ display: 'flex', alignItems: 'center', fontSize: '0.875rem' }}
               >
-                {darkMode ? <Brightness7 /> : <Brightness4 />}
-              </IconButton>
-            </motion.div>
+                <Home sx={{ mr: 0.5, fontSize: 'inherit' }} />
+                Dashboard
+              </Link>
+            </Breadcrumbs>
+          </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
-              <motion.div
-                animate={pulseVariants.pulse}
-              >
-                <Avatar
-                  sx={{ 
-                    mr: 1, 
-                    bgcolor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                    boxShadow: '0 0 20px rgba(240, 147, 251, 0.5)'
-                  }}
-                >
-                  {user.name.charAt(0).toUpperCase()}
-                </Avatar>
-              </motion.div>
-              <Typography variant="body2" sx={{ color: '#fff' }}>
-                {user.name} ({user.role})
-              </Typography>
-            </Box>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <IconButton
+              color="inherit"
+              onClick={() => setDarkMode(!darkMode)}
+              sx={{ mr: 1 }}
+            >
+              {darkMode ? <Brightness7 /> : <Brightness4 />}
+            </IconButton>
+          </motion.div>
 
-            {user.role === 'ADMIN' && (
-              <FloatingButton
-                color="inherit"
-                startIcon={<VpnKey />}
-                onClick={() => {
-                  setNewKey('');
-                  setModalOpen(true);
-                }}
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: '0 0 25px rgba(255, 255, 255, 0.3)'
-                }}
-                whileTap={{ scale: 0.95 }}
-                sx={{
-                  background: alpha('#ffffff', 0.1),
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${alpha('#ffffff', 0.2)}`,
-                  borderRadius: '25px',
-                  mr: 2,
-                }}
-              >
-                Generate License
-              </FloatingButton>
-            )}
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
+            <Avatar
+              sx={{ 
+                mr: 1, 
+                bgcolor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                boxShadow: '0 0 20px rgba(240, 147, 251, 0.5)'
+              }}
+            >
+              {user?.name?.charAt(0).toUpperCase()}
+            </Avatar>
+            <Typography variant="body2" sx={{ color: '#fff' }}>
+              {user?.name} ({user?.role})
+            </Typography>
+          </Box>
 
+          {user?.role === 'ADMIN' && (
             <FloatingButton
               color="inherit"
-              startIcon={<ExitToApp />}
-              onClick={handleLogout}
+              startIcon={<VpnKey />}
+              onClick={() => {
+                setNewKey('');
+                setModalOpen(true);
+              }}
               whileHover={{ 
                 scale: 1.05,
                 boxShadow: '0 0 25px rgba(255, 255, 255, 0.3)'
@@ -347,31 +253,123 @@ const Dashboard = () => {
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${alpha('#ffffff', 0.2)}`,
                 borderRadius: '25px',
+                mr: 2,
               }}
             >
-              Logout
+              Generate License
             </FloatingButton>
-          </Toolbar>
-        </AppBar>
-      </motion.div>
+          )}
+
+          <FloatingButton
+            color="inherit"
+            startIcon={<ExitToApp />}
+            onClick={handleLogout}
+            whileHover={{ 
+              scale: 1.05,
+              boxShadow: '0 0 25px rgba(255, 255, 255, 0.3)'
+            }}
+            whileTap={{ scale: 0.95 }}
+            sx={{
+              background: alpha('#ffffff', 0.1),
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${alpha('#ffffff', 0.2)}`,
+              borderRadius: '25px',
+            }}
+          >
+            Logout
+          </FloatingButton>
+        </Toolbar>
+      </AppBar>
 
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Stats Cards */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            {statsCards.map((stat, index) => (
-              <Grid item xs={12} sm={6} md={4} key={stat.title}>
+        {/* Stats Cards */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          {statsCards.map((stat, index) => (
+            <Grid item xs={12} sm={6} md={4} key={stat.title}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <GlassCard
+                  sx={{
+                    background: alpha('#ffffff', 0.1),
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid ${alpha('#ffffff', 0.2)}`,
+                    borderRadius: '20px',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    overflow: 'hidden',
+                    position: 'relative',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: '4px',
+                      background: stat.color,
+                    }}
+                  />
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Box
+                        sx={{
+                          background: stat.color,
+                          borderRadius: '12px',
+                          p: 1,
+                          mr: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <stat.icon sx={{ color: '#fff', fontSize: 24 }} />
+                      </Box>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="body2" sx={{ color: '#fff', opacity: 0.8 }}>
+                          {stat.title}
+                        </Typography>
+                        <Typography variant="h4" sx={{ color: '#fff', fontWeight: 700 }}>
+                          {stat.value}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        label={stat.trend}
+                        size="small"
+                        sx={{
+                          background: stat.trend.startsWith('+') 
+                            ? alpha('#43e97b', 0.2) 
+                            : alpha('#f5576c', 0.2),
+                          color: stat.trend.startsWith('+') ? '#43e97b' : '#f5576c',
+                          fontWeight: 600,
+                        }}
+                      />
+                    </Box>
+                  </CardContent>
+                </GlassCard>
+              </motion.div>
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* Navigation Cards */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          {navigation.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <Grid item xs={12} sm={6} md={4} key={item.name}>
                 <motion.div
-                  variants={itemVariants}
-                  whileHover={cardHoverVariants.hover}
-                  style={{ perspective: 1000 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: (index + 3) * 0.1 }}
+                  whileHover={{ scale: 1.05 }}
                 >
                   <GlassCard
                     sx={{
+                      cursor: 'pointer',
                       background: alpha('#ffffff', 0.1),
                       backdropFilter: 'blur(20px)',
                       border: `1px solid ${alpha('#ffffff', 0.2)}`,
@@ -379,7 +377,12 @@ const Dashboard = () => {
                       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
                       overflow: 'hidden',
                       position: 'relative',
+                      height: '160px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
+                    onClick={() => navigate(item.href)}
                   >
                     <Box
                       sx={{
@@ -387,290 +390,207 @@ const Dashboard = () => {
                         top: 0,
                         left: 0,
                         right: 0,
-                        height: '4px',
-                        background: stat.color,
+                        bottom: 0,
+                        background: `${item.color}`,
+                        opacity: 0.1,
                       }}
                     />
-                    <CardContent sx={{ p: 3 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Box
-                          sx={{
-                            background: stat.color,
-                            borderRadius: '12px',
-                            p: 1,
-                            mr: 2,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <stat.icon sx={{ color: '#fff', fontSize: 24 }} />
-                        </Box>
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="body2" sx={{ color: '#fff', opacity: 0.8 }}>
-                            {stat.title}
-                          </Typography>
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
-                          >
-                            <Typography variant="h4" sx={{ color: '#fff', fontWeight: 700 }}>
-                              {stat.value}
-                            </Typography>
-                          </motion.div>
-                        </Box>
-                        <Chip
-                          label={stat.trend}
-                          size="small"
-                          sx={{
-                            background: stat.trend.startsWith('+') 
-                              ? alpha('#43e97b', 0.2) 
-                              : alpha('#f5576c', 0.2),
-                            color: stat.trend.startsWith('+') ? '#43e97b' : '#f5576c',
-                            fontWeight: 600,
-                          }}
-                        />
-                      </Box>
+                    <CardContent sx={{ textAlign: 'center', zIndex: 1 }}>
+                      <motion.div
+                        whileHover={{ 
+                          rotate: [0, -10, 10, -10, 0],
+                          scale: 1.1 
+                        }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <Icon sx={{ fontSize: 48, mb: 2, color: '#fff' }} />
+                      </motion.div>
+                      <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600, mb: 1 }}>
+                        {item.name}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#fff', opacity: 0.8 }}>
+                        {item.description}
+                      </Typography>
                     </CardContent>
                   </GlassCard>
                 </motion.div>
               </Grid>
-            ))}
-          </Grid>
+            );
+          })}
+        </Grid>
 
-          {/* Navigation Cards */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            {navigation.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <Grid item xs={12} sm={6} md={4} key={item.name}>
-                  <motion.div
-                    variants={itemVariants}
-                    whileHover={cardHoverVariants.hover}
-                    style={{ perspective: 1000 }}
-                  >
-                    <GlassCard
-                      sx={{
-                        cursor: 'pointer',
-                        background: alpha('#ffffff', 0.1),
-                        backdropFilter: 'blur(20px)',
-                        border: `1px solid ${alpha('#ffffff', 0.2)}`,
-                        borderRadius: '20px',
-                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                        overflow: 'hidden',
-                        position: 'relative',
-                        height: '160px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                      onClick={() => navigate(item.href)}
-                    >
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          background: `${item.color}`,
-                          opacity: 0.1,
-                        }}
-                      />
-                      <CardContent sx={{ textAlign: 'center', zIndex: 1 }}>
-                        <motion.div
-                          whileHover={{ 
-                            rotate: [0, -10, 10, -10, 0],
-                            scale: 1.1 
-                          }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <Icon sx={{ fontSize: 48, mb: 2, color: '#fff' }} />
-                        </motion.div>
-                        <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600, mb: 1 }}>
-                          {item.name}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: '#fff', opacity: 0.8 }}>
-                          {item.description}
-                        </Typography>
-                      </CardContent>
-                    </GlassCard>
-                  </motion.div>
-                </Grid>
-              );
-            })}
-          </Grid>
-
-          {/* Content Overview & User Info */}
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={8}>
-              <motion.div variants={itemVariants}>
-                <AnimatedPaper
-                  sx={{
-                    p: 3,
-                    background: alpha('#ffffff', 0.1),
-                    backdropFilter: 'blur(20px)',
-                    border: `1px solid ${alpha('#ffffff', 0.2)}`,
-                    borderRadius: '20px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                  }}
-                >
-                  <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600, mb: 3 }}>
-                    Recent Content
-                  </Typography>
-                  <List>
-                    <AnimatePresence>
-                      {contentItems.slice(0, 5).map((item, index) => (
-                        <motion.div
-                          key={item._id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          <ListItem
-                            sx={{
-                              mb: 1,
-                              background: alpha('#ffffff', 0.05),
-                              borderRadius: '12px',
-                              border: `1px solid ${alpha('#ffffff', 0.1)}`,
-                            }}
-                          >
-                            <ListItemText
-                              primary={
-                                <Typography sx={{ color: '#fff', fontWeight: 500 }}>
-                                  {item.title}
-                                </Typography>
-                              }
-                              secondary={
-                                <Typography sx={{ color: '#fff', opacity: 0.7 }}>
-                                  Type: {item.type} | Duration: {item.duration}s | By: {item.uploadedBy?.name}
-                                </Typography>
-                              }
-                            />
-                            <motion.div
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                            >
-                              <Chip
-                                label={item.status}
-                                color={getStatusColor(item.status)}
-                                size="small"
-                                sx={{ fontWeight: 600 }}
-                              />
-                            </motion.div>
-                          </ListItem>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                    {contentItems.length === 0 && (
+        {/* Content Overview & User Info */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              <AnimatedPaper
+                sx={{
+                  p: 3,
+                  background: alpha('#ffffff', 0.1),
+                  backdropFilter: 'blur(20px)',
+                  border: `1px solid ${alpha('#ffffff', 0.2)}`,
+                  borderRadius: '20px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600, mb: 3 }}>
+                  Recent Content
+                </Typography>
+                <List>
+                  <AnimatePresence>
+                    {contentItems.slice(0, 5).map((item, index) => (
                       <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
+                        key={item._id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ delay: index * 0.1 }}
                       >
-                        <ListItem>
-                          <ListItemText 
+                        <ListItem
+                          sx={{
+                            mb: 1,
+                            background: alpha('#ffffff', 0.05),
+                            borderRadius: '12px',
+                            border: `1px solid ${alpha('#ffffff', 0.1)}`,
+                          }}
+                        >
+                          <ListItemText
                             primary={
+                              <Typography sx={{ color: '#fff', fontWeight: 500 }}>
+                                {item.title}
+                              </Typography>
+                            }
+                            secondary={
                               <Typography sx={{ color: '#fff', opacity: 0.7 }}>
-                                No content available
+                                Type: {item.type} | Duration: {item.duration}s | By: {item.uploadedBy?.name}
                               </Typography>
                             }
                           />
+                          <motion.div
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <Chip
+                              label={item.status}
+                              color={getStatusColor(item.status)}
+                              size="small"
+                              sx={{ fontWeight: 600 }}
+                            />
+                          </motion.div>
                         </ListItem>
                       </motion.div>
-                    )}
-                  </List>
-                  <Box sx={{ textAlign: 'center', mt: 2 }}>
-                    <FloatingButton
-                      variant="outlined"
-                      onClick={() => navigate('/content')}
-                      whileHover={{ 
-                        scale: 1.05,
-                        boxShadow: '0 0 25px rgba(255, 255, 255, 0.3)'
-                      }}
-                      whileTap={{ scale: 0.95 }}
-                      sx={{
-                        color: '#fff',
-                        borderColor: alpha('#ffffff', 0.3),
-                        borderRadius: '25px',
-                        '&:hover': {
-                          borderColor: '#fff',
-                          background: alpha('#ffffff', 0.1),
-                        }
-                      }}
-                    >
-                      View All Content
-                    </FloatingButton>
-                  </Box>
-                </AnimatedPaper>
-              </motion.div>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <motion.div variants={itemVariants}>
-                <AnimatedPaper
-                  sx={{
-                    p: 3,
-                    background: alpha('#ffffff', 0.1),
-                    backdropFilter: 'blur(20px)',
-                    border: `1px solid ${alpha('#ffffff', 0.2)}`,
-                    borderRadius: '20px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-                  }}
-                >
-                  <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600, mb: 3 }}>
-                    User Information
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                    ))}
+                  </AnimatePresence>
+                  {contentItems.length === 0 && (
                     <motion.div
-                      animate={pulseVariants.pulse}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                     >
-                      <Avatar
-                        sx={{
-                          mr: 2,
-                          width: 64,
-                          height: 64,
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          boxShadow: '0 0 20px rgba(102, 126, 234, 0.5)',
-                          fontSize: '24px',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {user.name.charAt(0).toUpperCase()}
-                      </Avatar>
-                    </motion.div>
-                    <Box>
-                      <Typography sx={{ color: '#fff', fontWeight: 600, fontSize: '18px' }}>
-                        {user.name}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#fff', opacity: 0.8, mb: 1 }}>
-                        {user.email}
-                      </Typography>
-                      <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Chip
-                          label={user.role}
-                          sx={{
-                            background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-                            color: '#fff',
-                            fontWeight: 600,
-                            boxShadow: '0 4px 15px rgba(67, 233, 123, 0.3)',
-                          }}
+                      <ListItem>
+                        <ListItemText 
+                          primary={
+                            <Typography sx={{ color: '#fff', opacity: 0.7 }}>
+                              No content available
+                            </Typography>
+                          }
                         />
-                      </motion.div>
-                    </Box>
-                  </Box>
-                </AnimatedPaper>
-              </motion.div>
-            </Grid>
+                      </ListItem>
+                    </motion.div>
+                  )}
+                </List>
+                <Box sx={{ textAlign: 'center', mt: 2 }}>
+                  <FloatingButton
+                    variant="outlined"
+                    onClick={() => navigate('/content')}
+                    whileHover={{ 
+                      scale: 1.05,
+                      boxShadow: '0 0 25px rgba(255, 255, 255, 0.3)'
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    sx={{
+                      color: '#fff',
+                      borderColor: alpha('#ffffff', 0.3),
+                      borderRadius: '25px',
+                      '&:hover': {
+                        borderColor: '#fff',
+                        background: alpha('#ffffff', 0.1),
+                      }
+                    }}
+                  >
+                    View All Content
+                  </FloatingButton>
+                </Box>
+              </AnimatedPaper>
+            </motion.div>
           </Grid>
-        </motion.div>
+
+          <Grid item xs={12} md={4}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+            >
+              <AnimatedPaper
+                sx={{
+                  p: 3,
+                  background: alpha('#ffffff', 0.1),
+                  backdropFilter: 'blur(20px)',
+                  border: `1px solid ${alpha('#ffffff', 0.2)}`,
+                  borderRadius: '20px',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                }}
+              >
+                <Typography variant="h6" sx={{ color: '#fff', fontWeight: 600, mb: 3 }}>
+                  User Information
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <Avatar
+                    sx={{
+                      mr: 2,
+                      width: 64,
+                      height: 64,
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      boxShadow: '0 0 20px rgba(102, 126, 234, 0.5)',
+                      fontSize: '24px',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </Avatar>
+                  <Box>
+                    <Typography sx={{ color: '#fff', fontWeight: 600, fontSize: '18px' }}>
+                      {user?.name}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#fff', opacity: 0.8, mb: 1 }}>
+                      {user?.email}
+                    </Typography>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Chip
+                        label={user?.role}
+                        sx={{
+                          background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                          color: '#fff',
+                          fontWeight: 600,
+                          boxShadow: '0 4px 15px rgba(67, 233, 123, 0.3)',
+                        }}
+                      />
+                    </motion.div>
+                  </Box>
+                </Box>
+              </AnimatedPaper>
+            </motion.div>
+          </Grid>
+        </Grid>
       </Container>
 
-      {/* Enhanced License Generation Modal */}
+      {/* License Generation Modal */}
       <AnimatePresence>
         {modalOpen && (
           <Modal
