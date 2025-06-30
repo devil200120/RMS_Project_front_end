@@ -1,4 +1,4 @@
-// ScheduleManager.jsx - FIXED VERSION WITH CORRECTED SYNTAX
+// ScheduleManager.jsx - CORRECTED VERSION WITH FIXED SYNTAX
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -258,6 +258,7 @@ function ScheduleManager() {
     setFormData(prev => ({ ...prev, priority: newValue }));
   };
 
+  // CRITICAL FIX: Updated handleSubmit to send contentIds instead of content
   const handleSubmit = (e) => {
     e.preventDefault();
     
@@ -266,7 +267,7 @@ function ScheduleManager() {
       return;
     }
 
-    // Enhanced schedule data structure
+    // FIXED: Send contentIds to backend, not content array
     const scheduleData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
@@ -279,11 +280,7 @@ function ScheduleManager() {
       weekDays: formData.repeat === 'weekly' ? formData.weekDays : [],
       priority: formData.priority,
       isActive: formData.isActive,
-      content: formData.contentIds.map((id, idx) => ({
-        contentId: id,
-        order: idx,
-        customDuration: 10 // Default duration
-      }))
+      contentIds: formData.contentIds  // Send contentIds, not content array
     };
 
     console.log('Submitting schedule data:', scheduleData);
