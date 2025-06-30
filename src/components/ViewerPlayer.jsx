@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import DownloadIcon from '@mui/icons-material/Download';
+
 import { 
   Box, 
   Typography, 
@@ -267,6 +269,61 @@ export default function ViewerPlayer() {
             >
               <Fullscreen />
             </IconButton>
+            {content.type === 'video' && (
+  <Box sx={{ position: 'relative', mb: 3, textAlign: 'center' }}>
+    <video
+      ref={videoRef}
+      src={`${MEDIA_URL}/${content.filePath}`}
+      controls 
+      autoPlay 
+      loop 
+      muted
+      style={{ 
+        width: '90%', 
+        maxWidth: 900, 
+        borderRadius: 8, 
+        outline: `3px solid ${theme.palette.primary.main}`,
+        boxShadow: theme.shadows[8]
+      }}
+      onError={(e) => {
+        console.error('Video playback error:', e);
+        toast.error('Error playing video content');
+      }}
+    />
+    <Box sx={{ 
+      position: 'absolute', 
+      bottom: 16, 
+      left: '5%', 
+      display: 'flex', 
+      gap: 2 
+    }}>
+      <IconButton
+        component="a"
+        href={`${MEDIA_URL}/${content.filePath}`}
+        download={content.title ? `${content.title}.mp4` : "video.mp4"}
+        sx={{
+          bgcolor: 'rgba(0,0,0,0.7)',
+          color: '#fff',
+          '&:hover': { bgcolor: 'rgba(0,0,0,0.9)' }
+        }}
+        aria-label="Download video"
+      >
+        <DownloadIcon />
+      </IconButton>
+      <IconButton
+        onClick={enterFullScreen}
+        sx={{ 
+          bgcolor: 'rgba(0,0,0,0.7)',
+          color: '#fff',
+          '&:hover': { bgcolor: 'rgba(0,0,0,0.9)' }
+        }}
+        aria-label="Enter full screen"
+      >
+        <Fullscreen />
+      </IconButton>
+    </Box>
+  </Box>
+)}
           </Box>
         )}
 
