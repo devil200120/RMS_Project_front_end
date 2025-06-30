@@ -54,7 +54,7 @@ function ScheduleManager() {
     endDate: '',
     startTime: '',
     endTime: '',
-    timezone: 'UTC',
+    timezone: 'Asia/Kolkata',
     repeat: 'none',
     contentIds: [],
   });
@@ -81,7 +81,7 @@ function ScheduleManager() {
       endDate: '',
       startTime: '',
       endTime: '',
-      timezone: 'UTC',
+      timezone: 'Asia/Kolkata',
       repeat: 'none',
       contentIds: [],
     });
@@ -103,7 +103,7 @@ function ScheduleManager() {
       endDate: schedule.endDate ? schedule.endDate.substring(0, 10) : '',
       startTime: schedule.startTime || '',
       endTime: schedule.endTime || '',
-      timezone: schedule.timezone || 'UTC',
+      timezone: schedule.timezone || 'Asia/Kolkata',
       repeat: schedule.repeat || 'none',
       contentIds: schedule.content ? schedule.content.map(c => c.contentId) : [],
     });
