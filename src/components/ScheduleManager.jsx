@@ -1,4 +1,4 @@
-// ScheduleManager.jsx - FIXED VERSION
+// ScheduleManager.jsx - FIXED VERSION WITH CORRECTED SYNTAX
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -42,8 +42,7 @@ import {
   AccessTime,
   Public,
   Repeat,
-  // FIX: Replaced Priority with Star icon
-  Star
+  Star  // Fixed: Replaced Priority with Star
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 
@@ -122,6 +121,7 @@ function ScheduleManager() {
     }
   }, [error, dispatch]);
 
+  // Enhanced form validation
   const validateForm = () => {
     const errors = {};
     
@@ -166,6 +166,7 @@ function ScheduleManager() {
     setCurrentSchedule(null);
     setFormErrors({});
     
+    // Set today as default start date
     const today = new Date().toISOString().split('T')[0];
     
     setFormData({
@@ -225,6 +226,7 @@ function ScheduleManager() {
       [name]: type === 'checkbox' ? checked : value 
     }));
     
+    // Clear error when user starts typing
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -264,6 +266,7 @@ function ScheduleManager() {
       return;
     }
 
+    // Enhanced schedule data structure
     const scheduleData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
@@ -279,9 +282,11 @@ function ScheduleManager() {
       content: formData.contentIds.map((id, idx) => ({
         contentId: id,
         order: idx,
-        customDuration: 10
+        customDuration: 10 // Default duration
       }))
     };
+
+    console.log('Submitting schedule data:', scheduleData);
 
     if (editMode && currentSchedule) {
       dispatch(updateSchedule({ id: currentSchedule._id, data: scheduleData }));
@@ -292,6 +297,7 @@ function ScheduleManager() {
     setOpen(false);
   };
 
+  // Get status chip color and text
   const getStatusChip = (schedule) => {
     if (!schedule.isActive) {
       return { label: 'Inactive', color: 'default' };
@@ -358,7 +364,8 @@ function ScheduleManager() {
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Priority</TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Status</TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Actions</TableCell>
-              </TableHead>
+              </TableRow>
+            </TableHead>
             <TableBody>
               {schedules.length === 0 ? (
                 <TableRow>
@@ -410,7 +417,6 @@ function ScheduleManager() {
                         />
                       </TableCell>
                       <TableCell>
-                        {/* FIX: Replaced Priority with Star icon */}
                         <Chip 
                           label={schedule.priority || 1}
                           size="small"
@@ -452,6 +458,7 @@ function ScheduleManager() {
         </TableContainer>
       )}
 
+      {/* Enhanced Dialog */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle sx={{ bgcolor: 'primary.main', color: 'white' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -462,6 +469,7 @@ function ScheduleManager() {
         <DialogContent sx={{ pt: 3 }}>
           <Box component="form" onSubmit={handleSubmit}>
             <Grid container spacing={3}>
+              {/* Basic Information */}
               <Grid item xs={12}>
                 <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                   <ScheduleIcon color="primary" />
@@ -494,6 +502,7 @@ function ScheduleManager() {
                 />
               </Grid>
 
+              {/* Date and Time Settings */}
               <Grid item xs={12}>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -580,6 +589,7 @@ function ScheduleManager() {
                 </FormControl>
               </Grid>
 
+              {/* Content Selection */}
               <Grid item xs={12}>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" sx={{ mb: 2 }}>
@@ -619,6 +629,7 @@ function ScheduleManager() {
                 </FormControl>
               </Grid>
 
+              {/* Repeat Settings */}
               <Grid item xs={12}>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -661,6 +672,7 @@ function ScheduleManager() {
                 />
               </Grid>
 
+              {/* Week Days Selection for Weekly Repeat */}
               {formData.repeat === 'weekly' && (
                 <Grid item xs={12}>
                   <Typography variant="body2" gutterBottom>
@@ -688,6 +700,7 @@ function ScheduleManager() {
                 </Grid>
               )}
 
+              {/* Status */}
               <Grid item xs={12}>
                 <FormControlLabel
                   control={
