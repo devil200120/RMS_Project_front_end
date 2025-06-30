@@ -1,223 +1,402 @@
-import React, { useEffect, useState } from 'react';
+// src/components/ViewerPlayer.jsx
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import api from '../services/api';
+import { 
+  Box, 
+  Typography, 
+  Alert, 
+  CircularProgress, 
+  IconButton, 
+  Button, 
+  useTheme,
+  Chip,
+  Paper,
+  Stack
+} from '@mui/material';
+import { 
+  ArrowBack, 
+  Refresh, 
+  Fullscreen, 
+  Wifi, 
+  WifiOff,
+  PlayArrow,
+  Schedule as ScheduleIcon
+} from '@mui/icons-material';
+import { toast } from 'react-toastify';
+import socketService from '../services/socketService';
 
-const glassBg = {
-  background: 'rgba(255,255,255,0.09)',
-  borderRadius: '32px',
-  boxShadow: '0 8px 32px 0 rgba(31,38,135,0.37)',
-  backdropFilter: 'blur(14px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(14px) saturate(180%)',
-  border: '1.5px solid rgba(255,255,255,0.18)',
-  padding: '32px',
-  maxWidth: '90vw',
-  minWidth: '340px',
-  minHeight: '300px',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  animation: 'fadein 1.2s cubic-bezier(.4,0,.2,1)'
-};
+const MEDIA_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
-const fadeKeyframes = `
-@keyframes fadein {
-  from { opacity: 0; transform: translateY(40px) scale(0.98);}
-  to   { opacity: 1; transform: translateY(0) scale(1);}
-}
-`;
-
-function ViewerPlayer() {
+export default function ViewerPlayer() {
   const navigate = useNavigate();
+  const theme = useTheme();
   const { user } = useSelector(state => state.auth);
+  
   const [content, setContent] = useState(null);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [lastCheck, setLastCheck] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  
+  const videoRef = useRef();
 
-  // Redirect non-viewers
   useEffect(() => {
-    if (!user || user.role !== "VIEWER") {
-      navigate("/dashboard");
+    if (!user || user.role !== 'VIEWER') {
+      navigate('/dashboard', { replace: true });
+      return;
     }
+
+    console.log('🔌 Initializing Socket.IO connection for viewer...');
+    socketService.connect(user);
+
+    return () => {
+      socketService.cleanup();
+    };
   }, [user, navigate]);
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const res = await api.get('/schedules/current');
-        if (res.data.success && res.data.data) {
-          setContent(res.data.data);
-          setError(null);
-        } else {
-          setContent(null);
-          setError('No active schedule');
+  const fetchContentFromAPI = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${MEDIA_URL}/api/schedules/current`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
         }
-      } catch (err) {
-        console.error('Error fetching current schedule:', err);
+      });
+
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setContent(data.data);
+        setError('');
+      } else {
         setContent(null);
-        setError('Failed to fetch scheduled content');
+        setError(data.message || 'No active schedule');
       }
-    };
-
-    fetchContent();
-    const interval = setInterval(fetchContent, 60000); // refresh every minute
-    return () => clearInterval(interval);
+      
+      setLastCheck(new Date());
+    } catch (fetchError) {
+      console.error('❌ Error fetching content:', fetchError);
+      setContent(null);
+      setError('Failed to fetch scheduled content');
+    } finally {
+      if (showLoading) setLoading(false);
+    }
   }, []);
 
-  const handleDownload = () => {
-    if (content.filePath) {
-      const API_BASE = import.meta.env.VITE_API_URL.replace('/api', '');
-      window.open(`${API_BASE}/${content.filePath}`, "_blank");
-    } else if (content.url) {
-      window.open(content.url, "_blank");
-    }
-  };
-
-  const API_BASE = import.meta.env.VITE_API_URL.replace('/api', '');
-
-  // Add fade-in keyframes to document head once
   useEffect(() => {
-    if (!document.getElementById('viewer-fadein-keyframes')) {
-      const style = document.createElement('style');
-      style.id = 'viewer-fadein-keyframes';
-      style.innerHTML = fadeKeyframes;
-      document.head.appendChild(style);
+    const contentRefreshCleanup = socketService.on('content-refresh', (data) => {
+      console.log('🔄 Content refresh event received:', data);
+      toast.info(data.message || 'Checking for new content...');
+      socketService.requestCurrentContent();
+    });
+
+    const contentBroadcastCleanup = socketService.on('current-content-broadcast', (data) => {
+      console.log('📺 Content broadcast received:', data);
+      
+      if (data.success && data.data) {
+        setContent(data.data);
+        setError('');
+        setLastCheck(new Date());
+        toast.success(`Now playing: ${data.data.title}`);
+      } else {
+        setContent(null);
+        setError(data.message || 'No active content');
+        setLastCheck(new Date());
+      }
+    });
+
+    const contentResponseCleanup = socketService.on('current-content-response', (data) => {
+      console.log('📋 Content response received:', data);
+      
+      if (data.success && data.data) {
+        setContent(data.data);
+        setError('');
+      } else {
+        setContent(null);
+        setError(data.message || 'No active content');
+      }
+      
+      setLastCheck(new Date());
+      setLoading(false);
+    });
+
+    fetchContentFromAPI();
+
+    return () => {
+      contentRefreshCleanup();
+      contentBroadcastCleanup();
+      contentResponseCleanup();
+    };
+  }, [fetchContentFromAPI]);
+
+  const handleRefresh = useCallback(() => {
+    setLoading(true);
+    
+    if (isConnected) {
+      socketService.requestCurrentContent();
+      setTimeout(() => {
+        if (loading) {
+          fetchContentFromAPI();
+        }
+      }, 2000);
+    } else {
+      fetchContentFromAPI();
+    }
+  }, [isConnected, loading, fetchContentFromAPI]);
+
+  const handleBack = useCallback(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+
+  const enterFullScreen = useCallback(() => {
+    const el = videoRef.current;
+    if (el?.requestFullscreen) {
+      el.requestFullscreen();
     }
   }, []);
 
-  // Animated Glassmorphic Loader/Error
-  if (error) {
+  if (loading) {
     return (
-      <div style={{
-        position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh",
-        background: "linear-gradient(120deg, #2b5876 0%, #4e4376 100%)",
-        display: "flex", alignItems: "center", justifyContent: "center"
-      }}>
-        <div style={glassBg}>
-          <span style={{
-            fontSize: 32, fontWeight: 700, color: "#fff",
-            textShadow: "0 2px 8px rgba(0,0,0,0.33)"
-          }}>
-            {error}
-          </span>
-        </div>
-      </div>
+      <FullScreen>
+        <GlassBox>
+          <ConnectionStatus isConnected={isConnected} />
+          <CircularProgress sx={{ color: '#fff', mb: 2 }} />
+          <Typography sx={{ color: '#fff' }}>Loading scheduled content...</Typography>
+        </GlassBox>
+      </FullScreen>
     );
   }
 
-  if (!content) {
+  if (error || !content) {
     return (
-      <div style={{
-        position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh",
-        background: "linear-gradient(120deg, #2b5876 0%, #4e4376 100%)",
-        display: "flex", alignItems: "center", justifyContent: "center"
-      }}>
-        <div style={glassBg}>
-          <span style={{
-            fontSize: 28, fontWeight: 600, color: "#fff",
-            textShadow: "0 2px 8px rgba(0,0,0,0.33)"
-          }}>
-            No scheduled content to play.
-          </span>
-        </div>
-      </div>
+      <FullScreen>
+        <GlassBox>
+          <ActionButtons onBack={handleBack} onRefresh={handleRefresh} />
+          <ConnectionStatus isConnected={isConnected} />
+          
+          <Alert severity="info" sx={{ mb: 2, width: '100%', bgcolor: 'rgba(255, 255, 255, 0.9)' }}>
+            {error || 'No content scheduled at this time'}
+          </Alert>
+          
+          {lastCheck && (
+            <Typography sx={{ color: '#fff', mb: 2, opacity: 0.8 }}>
+              Last checked: {lastCheck.toLocaleTimeString()}
+            </Typography>
+          )}
+          
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <Button 
+              variant="contained" 
+              onClick={handleRefresh}
+              startIcon={<Refresh />}
+              sx={{ bgcolor: 'rgba(25, 118, 210, 0.9)' }}
+            >
+              Check Again
+            </Button>
+            <Button 
+              variant="outlined" 
+              onClick={handleBack}
+              startIcon={<ArrowBack />}
+              sx={{ color: '#fff', borderColor: '#fff' }}
+            >
+              Go Back
+            </Button>
+          </Stack>
+        </GlassBox>
+      </FullScreen>
     );
   }
 
-  // Main display
   return (
-    <div style={{
-      position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh",
-      background: "linear-gradient(120deg, #2b5876 0%, #4e4376 100%)",
-      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999,
-      overflow: "auto"
-    }}>
-      <div style={glassBg}>
-        <h2 style={{
-          color: "#fff", letterSpacing: 1, marginBottom: 24,
-          textShadow: "0 2px 8px rgba(0,0,0,0.22)"
-        }}>
-          {content.title}
-        </h2>
-        {content.type === "image" && (
-          <img
-            src={`${API_BASE}/${content.filePath}`}
-            alt={content.title}
-            style={{
-              maxWidth: "64vw", maxHeight: "50vh",
-              borderRadius: "18px", boxShadow: "0 2px 32px rgba(0,0,0,0.12)",
-              marginBottom: 24, transition: "box-shadow .3s"
-            }}
-          />
+    <FullScreen>
+      <GlassBox>
+        <ActionButtons onBack={handleBack} onRefresh={handleRefresh} />
+        <ConnectionStatus isConnected={isConnected} />
+        
+        <Paper elevation={3} sx={{ p: 2, mb: 3, bgcolor: 'rgba(255, 255, 255, 0.95)' }}>
+          <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
+            <PlayArrow color="primary" />
+            <Typography variant="h5" color="primary" fontWeight="bold">
+              {content.title}
+            </Typography>
+            {content.schedule?.name && (
+              <Chip 
+                label={content.schedule.name}
+                color="secondary"
+                size="small"
+                icon={<ScheduleIcon />}
+              />
+            )}
+          </Stack>
+        </Paper>
+
+        {content.type === 'video' && (
+          <Box sx={{ position: 'relative', mb: 3, textAlign: 'center' }}>
+            <video
+              ref={videoRef}
+              src={`${MEDIA_URL}/${content.filePath}`}
+              controls 
+              autoPlay 
+              loop 
+              muted
+              style={{ 
+                width: '90%', 
+                maxWidth: 900, 
+                borderRadius: 8, 
+                outline: `3px solid ${theme.palette.primary.main}`,
+                boxShadow: theme.shadows[8]
+              }}
+              onError={(e) => {
+                console.error('Video playback error:', e);
+                toast.error('Error playing video content');
+              }}
+            />
+            <IconButton
+              onClick={enterFullScreen}
+              sx={{ 
+                position: 'absolute', 
+                bottom: 16, 
+                right: '5%', 
+                bgcolor: 'rgba(0,0,0,0.7)',
+                color: '#fff'
+              }}
+            >
+              <Fullscreen />
+            </IconButton>
+          </Box>
         )}
-        {content.type === "video" && (
-          <video
-            src={`${API_BASE}/${content.filePath}`}
-            controls
-            autoPlay
-            loop
-            style={{
-              maxWidth: "64vw", maxHeight: "50vh",
-              borderRadius: "18px", boxShadow: "0 2px 32px rgba(0,0,0,0.12)",
-              marginBottom: 24, transition: "box-shadow .3s"
-            }}
-          />
+
+        {content.type === 'image' && (
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <img
+              src={`${MEDIA_URL}/${content.filePath}`}
+              alt={content.title}
+              style={{ 
+                maxWidth: '90%', 
+                maxHeight: '70vh',
+                borderRadius: 8,
+                outline: `3px solid ${theme.palette.primary.main}`,
+                boxShadow: theme.shadows[8]
+              }}
+            />
+          </Box>
         )}
-        {content.type === "url" && (
-          <iframe
-            src={content.url}
-            title={content.title}
-            style={{
-              width: "62vw", height: "48vh",
-              border: "none", borderRadius: "16px",
-              background: "#fff", marginBottom: 24
-            }}
-          />
+
+        {content.type === 'url' && (
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <iframe
+              src={content.url}
+              style={{
+                width: '90%',
+                height: '70vh',
+                borderRadius: 8,
+                outline: `3px solid ${theme.palette.primary.main}`,
+                border: 'none'
+              }}
+              title={content.title}
+            />
+          </Box>
         )}
-        {content.type === "html" && (
-          <div
-            dangerouslySetInnerHTML={{ __html: content.htmlContent }}
-            style={{
-              background: "rgba(255,255,255,0.7)", color: "#222",
-              padding: 32, borderRadius: 16,
-              maxWidth: "60vw", maxHeight: "44vh", overflow: "auto",
-              marginBottom: 24, boxShadow: "0 2px 24px rgba(0,0,0,0.10)"
-            }}
-          />
+
+        {content.type === 'html' && (
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <div
+              dangerouslySetInnerHTML={{ __html: content.htmlContent }}
+              style={{
+                width: '90%',
+                margin: '0 auto',
+                padding: '20px',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderRadius: 8,
+                outline: `3px solid ${theme.palette.primary.main}`
+              }}
+            />
+          </Box>
         )}
-        <button
-          onClick={handleDownload}
-          style={{
-            marginTop: 8,
-            padding: "14px 44px",
-            fontSize: "1.15rem",
-            borderRadius: 32,
-            background: "rgba(255,255,255,0.20)",
-            color: "#fff",
-            border: "2px solid rgba(255,255,255,0.55)",
-            cursor: "pointer",
-            fontWeight: 600,
-            letterSpacing: 1,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
-            transition: "background .25s, color .25s, border .25s, box-shadow .25s"
-          }}
-          onMouseOver={e => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.35)";
-            e.currentTarget.style.color = "#222";
-            e.currentTarget.style.border = "2px solid #fff";
-            e.currentTarget.style.boxShadow = "0 4px 24px rgba(0,0,0,0.22)";
-          }}
-          onMouseOut={e => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.20)";
-            e.currentTarget.style.color = "#fff";
-            e.currentTarget.style.border = "2px solid rgba(255,255,255,0.55)";
-            e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.18)";
-          }}
-        >
-          Download
-        </button>
-      </div>
-    </div>
+
+        <Paper elevation={2} sx={{ p: 2, bgcolor: 'rgba(255, 255, 255, 0.9)' }}>
+          <Stack direction="row" spacing={3} justifyContent="center" alignItems="center">
+            <Typography variant="body2" color="text.secondary">
+              <strong>Type:</strong> {content.type.toUpperCase()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              <strong>Duration:</strong> {content.duration}s
+            </Typography>
+            {lastCheck && (
+              <Typography variant="body2" color="text.secondary">
+                <strong>Last Update:</strong> {lastCheck.toLocaleTimeString()}
+              </Typography>
+            )}
+          </Stack>
+        </Paper>
+      </GlassBox>
+    </FullScreen>
   );
 }
 
-export default ViewerPlayer;
+const FullScreen = ({ children }) => (
+  <Box sx={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    bgcolor: 'rgba(0,0,0,0.8)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    p: 2,
+    overflow: 'auto'
+  }}>
+    {children}
+  </Box>
+);
+
+const GlassBox = ({ children }) => (
+  <Box sx={{
+    position: 'relative',
+    p: 4,
+    bgcolor: 'rgba(255,255,255,0.1)',
+    backdropFilter: 'blur(20px)',
+    borderRadius: 3,
+    textAlign: 'center',
+    minWidth: 320,
+    maxWidth: '95vw',
+    maxHeight: '95vh',
+    overflow: 'auto',
+    border: '1px solid rgba(255,255,255,0.2)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+  }}>
+    {children}
+  </Box>
+);
+
+const ActionButtons = ({ onBack, onRefresh }) => (
+  <Box sx={{ position: 'absolute', top: 16, left: 16, right: 16, display: 'flex', justifyContent: 'space-between' }}>
+    <IconButton onClick={onBack} sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
+      <ArrowBack sx={{ color: '#fff' }} />
+    </IconButton>
+    <IconButton onClick={onRefresh} sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}>
+      <Refresh sx={{ color: '#fff' }} />
+    </IconButton>
+  </Box>
+);
+
+const ConnectionStatus = ({ isConnected }) => (
+  <Box sx={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)' }}>
+    <Chip
+      icon={isConnected ? <Wifi /> : <WifiOff />}
+      label={isConnected ? 'Live' : 'Offline'}
+      color={isConnected ? 'success' : 'error'}
+      size="small"
+      sx={{ 
+        bgcolor: isConnected ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)',
+        color: '#fff'
+      }}
+    />
+  </Box>
+);
