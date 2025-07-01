@@ -295,23 +295,25 @@ export default function ViewerPlayer() {
           <ConnectionStatus isConnected={isConnected} />
           
           <Fade in timeout={800}>
-            <Alert 
-              severity="info" 
-              sx={{ 
-                mb: 3, 
-                width: '100%',
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: 3,
-                color: '#fff',
-                '& .MuiAlert-icon': { color: '#fff' }
-              }}
-            >
-              <Typography variant="body1" fontWeight="medium">
-                {error || 'No content scheduled at this time'}
-              </Typography>
-            </Alert>
+            <div>
+              <Alert 
+                severity="info" 
+                sx={{ 
+                  mb: 3, 
+                  width: '100%',
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: 3,
+                  color: '#fff',
+                  '& .MuiAlert-icon': { color: '#fff' }
+                }}
+              >
+                <Typography variant="body1" fontWeight="medium">
+                  {error || 'No content scheduled at this time'}
+                </Typography>
+              </Alert>
+            </div>
           </Fade>
           
           {lastCheck && (
@@ -358,212 +360,226 @@ export default function ViewerPlayer() {
       
       <UltraGlassBox>
         <Slide in={showControls} direction="down" timeout={300}>
-          <Box>
+          <div>
             <FloatingActionButtons onBack={handleBack} onRefresh={handleRefresh} />
             <ConnectionStatus isConnected={isConnected} />
-          </Box>
+          </div>
         </Slide>
         
         {/* Cinematic Content Header */}
         <Zoom in timeout={600}>
-          <CinematicHeader elevation={0}>
-            <Stack 
-              direction="row" 
-              spacing={2} 
-              alignItems="center" 
-              justifyContent="center"
-              flexWrap="wrap"
-            >
-              <PlayArrow sx={{ 
-                fontSize: 32,
-                background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }} />
-              <Typography 
-                variant="h4" 
-                fontWeight="bold"
-                sx={{
-                  background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1)',
-                  backgroundSize: '200% auto',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  animation: 'gradientShift 3s ease infinite',
-                  textShadow: '0 0 30px rgba(255, 255, 255, 0.3)',
-                  '@keyframes gradientShift': {
-                    '0%, 100%': { backgroundPosition: '0% center' },
-                    '50%': { backgroundPosition: '200% center' }
-                  }
-                }}
+          <div>
+            <CinematicHeader elevation={0}>
+              <Stack 
+                direction="row" 
+                spacing={2} 
+                alignItems="center" 
+                justifyContent="center"
+                flexWrap="wrap"
               >
-                {content.title}
-              </Typography>
-              {content.schedule?.name && (
-                <Chip 
-                  label={content.schedule.name}
-                  icon={<ScheduleIcon />}
+                <PlayArrow sx={{ 
+                  fontSize: 32,
+                  background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }} />
+                <Typography 
+                  variant="h4" 
+                  fontWeight="bold"
                   sx={{
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
-                    backdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    color: '#fff',
-                    '& .MuiChip-icon': { color: '#fff' }
+                    background: 'linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1)',
+                    backgroundSize: '200% auto',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    animation: 'gradientShift 3s ease infinite',
+                    textShadow: '0 0 30px rgba(255, 255, 255, 0.3)',
+                    '@keyframes gradientShift': {
+                      '0%, 100%': { backgroundPosition: '0% center' },
+                      '50%': { backgroundPosition: '200% center' }
+                    }
                   }}
-                />
-              )}
-            </Stack>
-          </CinematicHeader>
+                >
+                  {content.title}
+                </Typography>
+                {content.schedule?.name && (
+                  <Chip 
+                    label={content.schedule.name}
+                    icon={<ScheduleIcon />}
+                    sx={{
+                      background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1))',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      color: '#fff',
+                      '& .MuiChip-icon': { color: '#fff' }
+                    }}
+                  />
+                )}
+              </Stack>
+            </CinematicHeader>
+          </div>
         </Zoom>
 
         {/* Ultra Cinematic Video Player */}
         {content.type === 'video' && (
           <Fade in timeout={800}>
-            <VideoContainer
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-            >
-              <video
-                ref={videoRef}
-                src={`${MEDIA_URL}/${content.filePath}`}
-                controls 
-                autoPlay 
-                loop 
-                muted
-                style={{ 
-                  width: '100%',
-                  height: 'auto',
-                  borderRadius: 16,
-                  boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
-                  border: '2px solid rgba(255, 255, 255, 0.1)'
-                }}
-                onError={() => toast.error('Error playing video')}
-              />
-              
-              {/* Floating Video Controls */}
-              <Fade in={showControls || isHovered} timeout={300}>
-                <VideoControls>
-                  <Stack direction="row" spacing={1}>
-                    <ControlButton
-                      component="a"
-                      href={`${MEDIA_URL}/${content.filePath}`}
-                      download={content.title ? `${content.title}.mp4` : "video.mp4"}
-                      aria-label="Download"
-                    >
-                      <DownloadIcon />
-                    </ControlButton>
-                    
-                    <ControlButton onClick={() => {}} aria-label="Volume">
-                      <VolumeUp />
-                    </ControlButton>
-                    
-                    <ControlButton onClick={() => {}} aria-label="Favorite">
-                      <Favorite />
-                    </ControlButton>
-                    
-                    <ControlButton onClick={() => {}} aria-label="Share">
-                      <Share />
-                    </ControlButton>
-                    
-                    <ControlButton onClick={enterFullScreen} aria-label="Fullscreen">
-                      <Fullscreen />
-                    </ControlButton>
-                    
-                    <ControlButton onClick={() => {}} aria-label="More">
-                      <MoreVert />
-                    </ControlButton>
-                  </Stack>
-                </VideoControls>
-              </Fade>
-            </VideoContainer>
+            <div>
+              <VideoContainer
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+              >
+                <video
+                  ref={videoRef}
+                  src={`${MEDIA_URL}/${content.filePath}`}
+                  controls 
+                  autoPlay 
+                  loop 
+                  muted
+                  style={{ 
+                    width: '100%',
+                    height: 'auto',
+                    borderRadius: 16,
+                    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
+                    border: '2px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                  onError={() => toast.error('Error playing video')}
+                />
+                
+                {/* Floating Video Controls */}
+                <Fade in={showControls || isHovered} timeout={300}>
+                  <div>
+                    <VideoControls>
+                      <Stack direction="row" spacing={1}>
+                        <ControlButton
+                          component="a"
+                          href={`${MEDIA_URL}/${content.filePath}`}
+                          download={content.title ? `${content.title}.mp4` : "video.mp4"}
+                          aria-label="Download"
+                        >
+                          <DownloadIcon />
+                        </ControlButton>
+                        
+                        <ControlButton onClick={() => {}} aria-label="Volume">
+                          <VolumeUp />
+                        </ControlButton>
+                        
+                        <ControlButton onClick={() => {}} aria-label="Favorite">
+                          <Favorite />
+                        </ControlButton>
+                        
+                        <ControlButton onClick={() => {}} aria-label="Share">
+                          <Share />
+                        </ControlButton>
+                        
+                        <ControlButton onClick={enterFullScreen} aria-label="Fullscreen">
+                          <Fullscreen />
+                        </ControlButton>
+                        
+                        <ControlButton onClick={() => {}} aria-label="More">
+                          <MoreVert />
+                        </ControlButton>
+                      </Stack>
+                    </VideoControls>
+                  </div>
+                </Fade>
+              </VideoContainer>
+            </div>
           </Fade>
         )}
 
         {/* Other content types with beautiful styling */}
         {content.type === 'image' && (
           <Fade in timeout={800}>
-            <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <img
-                src={`${MEDIA_URL}/${content.filePath}`}
-                alt={content.title}
-                style={{ 
-                  maxWidth: '100%', 
-                  maxHeight: '70vh',
-                  borderRadius: 16,
-                  boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
-                  border: '2px solid rgba(255, 255, 255, 0.1)'
-                }}
-              />
-            </Box>
+            <div>
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <img
+                  src={`${MEDIA_URL}/${content.filePath}`}
+                  alt={content.title}
+                  style={{ 
+                    maxWidth: '100%', 
+                    maxHeight: '70vh',
+                    borderRadius: 16,
+                    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)',
+                    border: '2px solid rgba(255, 255, 255, 0.1)'
+                  }}
+                />
+              </Box>
+            </div>
           </Fade>
         )}
 
         {content.type === 'url' && (
           <Fade in timeout={800}>
-            <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <iframe
-                src={content.url}
-                style={{
-                  width: '100%',
-                  height: '70vh',
-                  borderRadius: 16,
-                  border: '2px solid rgba(255, 255, 255, 0.1)',
-                  boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)'
-                }}
-                title={content.title}
-              />
-            </Box>
+            <div>
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <iframe
+                  src={content.url}
+                  style={{
+                    width: '100%',
+                    height: '70vh',
+                    borderRadius: 16,
+                    border: '2px solid rgba(255, 255, 255, 0.1)',
+                    boxShadow: '0 25px 50px rgba(0, 0, 0, 0.3)'
+                  }}
+                  title={content.title}
+                />
+              </Box>
+            </div>
           </Fade>
         )}
 
         {content.type === 'html' && (
           <Fade in timeout={800}>
-            <Box sx={{ textAlign: 'center', mb: 3 }}>
-              <Box
-                dangerouslySetInnerHTML={{ __html: content.htmlContent }}
-                sx={{
-                  width: '100%',
-                  maxWidth: 900,
-                  mx: 'auto',
-                  p: 3,
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
-                  backdropFilter: 'blur(20px)',
-                  borderRadius: 3,
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
-                }}
-              />
-            </Box>
+            <div>
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <Box
+                  dangerouslySetInnerHTML={{ __html: content.htmlContent }}
+                  sx={{
+                    width: '100%',
+                    maxWidth: 900,
+                    mx: 'auto',
+                    p: 3,
+                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05))',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: 3,
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                />
+              </Box>
+            </div>
           </Fade>
         )}
 
         {/* Stunning Info Footer */}
         <Slide in direction="up" timeout={600}>
-          <InfoFooter elevation={0}>
-            <Stack 
-              direction={{ xs: 'column', sm: 'row' }} 
-              spacing={3} 
-              justifyContent="center" 
-              alignItems="center"
-              flexWrap="wrap"
-            >
-              <InfoChip>
-                <Typography variant="body2" fontWeight="bold">
-                  Type: {content.type.toUpperCase()}
-                </Typography>
-              </InfoChip>
-              <InfoChip>
-                <Typography variant="body2" fontWeight="bold">
-                  Duration: {content.duration}s
-                </Typography>
-              </InfoChip>
-              {lastCheck && (
+          <div>
+            <InfoFooter elevation={0}>
+              <Stack 
+                direction={{ xs: 'column', sm: 'row' }} 
+                spacing={3} 
+                justifyContent="center" 
+                alignItems="center"
+                flexWrap="wrap"
+              >
                 <InfoChip>
                   <Typography variant="body2" fontWeight="bold">
-                    Updated: {lastCheck.toLocaleTimeString()}
+                    Type: {content.type.toUpperCase()}
                   </Typography>
                 </InfoChip>
-              )}
-            </Stack>
-          </InfoFooter>
+                <InfoChip>
+                  <Typography variant="body2" fontWeight="bold">
+                    Duration: {content.duration}s
+                  </Typography>
+                </InfoChip>
+                {lastCheck && (
+                  <InfoChip>
+                    <Typography variant="body2" fontWeight="bold">
+                      Updated: {lastCheck.toLocaleTimeString()}
+                    </Typography>
+                  </InfoChip>
+                )}
+              </Stack>
+            </InfoFooter>
+          </div>
         </Slide>
       </UltraGlassBox>
     </CinematicContainer>
